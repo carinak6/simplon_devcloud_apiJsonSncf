@@ -56,10 +56,10 @@ un Endpoint représente l’endroit où les API envoient les demandes et où ré
 
 ----lire le json donnee par le endpoint https://api.sncf.com/v1/coverage/sncf/stop_areas (utilisez requests)'''
 #ça marche
-url = "https://api.sncf.com/v1/coverage/sncf/stop_areas"
+""" url = "https://api.sncf.com/v1/coverage/sncf/stop_areas"
 headers = {"Authorization": "e3f2b3a6-caa9-47d7-98ee-1f67379e654b"}
 response = requests.get(url, headers=headers)
-raw_data = json.loads(response.text)
+raw_data = json.loads(response.text) """
 #print(raw_data)
 
 '''
@@ -82,7 +82,7 @@ raw_data = json.loads(response.text)
 
 
 #print(raw_data.keys()) #dict_keys(['pagination', 'links', 'disruptions', 'feed_publishers', 'context', 'stop_areas'])
-toutesArrets = raw_data['stop_areas']
+""" toutesArrets = raw_data['stop_areas'] """
 #print(type(toutesArrets)) #<class 'list'>
 #print(type(toutesArrets[0])) #<class 'dict'>
 
@@ -122,7 +122,7 @@ ainsi que les informations administratives de la région quand elles sont dispon
 #creer un fichier csv avec open et write
 #je vais utiliser des list : en premier je cree les entete et apres le contenu
 
-entetes =[u'id', u'Arret']
+""" entetes =[u'id', u'Arret']
 contenu =[]
 
 for arret in toutesArrets:
@@ -157,16 +157,36 @@ for arret in toutesArrets:
         local_label= 'label inexistant'
     
     #print(local_label)
+
     contenu.append([local_id, local_label]) # je cree la liste avec les donnes pris pour chaque arret
 
-#print(contenu) #verifie si la liste est bien crée
+#print(contenu) #verifie si la liste est bien crée """
 
-fichierCSV = open('sncfPremier.csv', 'w') #je ouvre le fichier, il effacera les donnes anciennes
+""" fichierCSV = open('sncfPremier.csv', 'w') #je ouvre le fichier, il effacera les donnes anciennes
 ligneEntete = ";".join(entetes) + "\n" # je tranforme les entetes en string separé par ';' et pour passer à l'autre '\n'
 fichierCSV.write(ligneEntete)  #j ecris sur le fichier
 for valeur in contenu: # je parcour la liste de contenu
      ligne = ";".join(valeur) + "\n" # pour chaque ligne on separe les valeurs par ';' et j'ajoute une retour à la ligne
      fichierCSV.write(ligne) # j ecrit la ligne sur le fichier
 print('fichier csv cree!!')
-fichierCSV.close() #je ferme le fichier pour liberer les ressources
+fichierCSV.close() #je ferme le fichier pour liberer les ressources """
+
+#TODO : il y a aussi un module CSV sur python pour travailler la creation des fichiers CSV
+#les filles sont utilisé panda, à faire les deux option
+#TODO : faire le CSV pour les url(links)
+
 '''---- Récupérer les informations sur un trajet entre Paris Gare de Lyon et Lyon Perrache '''
+
+url = "https://api.sncf.com/v1/coverage/sncf/journeys?from=stop_area:OCE:SA:87686006&to=stop_area:OCE:SA:87722025"
+headers = {"Authorization": "e3f2b3a6-caa9-47d7-98ee-1f67379e654b"}
+responseTrajetParisLyon = requests.get(url, headers=headers)
+dataParisLyon = json.loads(responseTrajetParisLyon.text)
+#pprint.pprint(dataParisLyon)
+#print(type(dataParisLyon)) #<class 'dict'>
+#print(dataParisLyon.keys()) #dict_keys(['tickets', 'links', 'journeys', 'disruptions', 'notes', 'feed_publishers', 'context', 'exceptions'])
+#print(type(dataParisLyon['journeys'])) #<class 'list'>
+
+for valor in dataParisLyon['journeys']:
+    print(type(valor)) #<class 'dict'>
+    #print(valor.items())
+    print(valor.keys())
