@@ -118,15 +118,55 @@ for urlapi in tousLinks:
 ainsi que les informations administratives de la région quand elles sont disponibles
 '''
 
- print(type(toutesArrets[0]['administrative_regions']))# <class 'list'>
+#print(type(toutesArrets[0]['administrative_regions']))# <class 'list'>
+#creer un fichier csv avec open et write
+#je vais utiliser des list : en premier je cree les entete et apres le contenu
+
+entetes =[u'id', u'Arret']
+contenu =[]
 
 for arret in toutesArrets:
-    #print(type(arret))# <class 'dict'>   
-   
-    if 'administrative_regions' in arret: 
-        print('combien : ',len(arret['administrative_regions']), 'type : ',type(arret['administrative_regions']))
-        print("un arret ==> ",arret['administrative_regions']) #[0]['name']) #['administrative_regions']
+    #print(type(arret))# <class 'dict'> 
+    #bloque pour definir l'id
+    local_id ='' 
+    if type(arret) == dict:
+        if "id" in arret.keys() : #len(arret['id'].strip()) != 0              
+            local_id = arret['id']
+            #list_ids.append(local_id)
+            #print(local_id)
+        else:
+            #print('id inexistante')
+            local_id ='id inexistante'
     else:
-        print('Pas de administrative_regions')
+        #print(f'Format inconnu {type(arret)}')    
+        local_id ='id inexistante'
+    #print(local_id)
 
+    #bloque de code pour avoir les label, le nom de l'arret
+    local_label=''
+
+    #if 'administrative_regions' in arret: #pour verifier quand on utilise l admintrative_regions
+    if 'label' in arret.keys() and len(arret['label']) != 0 : #and arret['label'].isspace() == False: 
+        #print('combien : ',len(arret['administrative_regions']), 'type : ',type(arret['administrative_regions']))#<class 'list'>
+        #print("un arret administrative_regions name ==> ",arret['administrative_regions'][0]['name']) #['administrative_regions']
+        
+        #print("un arret name ==> ",arret['label'])
+        local_label= arret['label']
+    else:
+        #print('Pas de administrative_regions')
+        local_label= 'label inexistant'
+    
+    #print(local_label)
+    contenu.append([local_id, local_label]) # je cree la liste avec les donnes pris pour chaque arret
+
+#print(contenu) #verifie si la liste est bien crée
+
+fichierCSV = open('sncfPremier.csv', 'w') #je ouvre le fichier, il effacera les donnes anciennes
+ligneEntete = ";".join(entetes) + "\n" # je tranforme les entetes en string separé par ';' et pour passer à l'autre '\n'
+fichierCSV.write(ligneEntete)  #j ecris sur le fichier
+for valeur in contenu: # je parcour la liste de contenu
+     ligne = ";".join(valeur) + "\n" # pour chaque ligne on separe les valeurs par ';' et j'ajoute une retour à la ligne
+     fichierCSV.write(ligne) # j ecrit la ligne sur le fichier
+print('fichier csv cree!!')
+fichierCSV.close() #je ferme le fichier pour liberer les ressources
 '''---- Récupérer les informations sur un trajet entre Paris Gare de Lyon et Lyon Perrache '''
