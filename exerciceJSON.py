@@ -186,7 +186,34 @@ dataParisLyon = json.loads(responseTrajetParisLyon.text)
 #print(dataParisLyon.keys()) #dict_keys(['tickets', 'links', 'journeys', 'disruptions', 'notes', 'feed_publishers', 'context', 'exceptions'])
 #print(type(dataParisLyon['journeys'])) #<class 'list'>
 
+""" 
 for valor in dataParisLyon['journeys']:
     print(type(valor)) #<class 'dict'>
     #print(valor.items())
-    print(valor.keys())
+    print(valor.keys()) 
+    #dict_keys(['status', 'distances', 'links', 'tags', 'nb_transfers', 'durations', 'arrival_date_time', 'calendars', 'departure_date_time', 'requested_date_time', 'fare', 'co2_emission', 'type', 'duration', 'sections'])
+"""
+journeys = dataParisLyon['journeys']
+#print(type(journeys)) #<class 'list'>
+#print(journeys)
+
+#print(len(journeys)) #il y a 1 seule element
+#varArrivalDateTime = journeys[0]["arrival_date_time"]# c est le date time general du trajet
+#print(type(varArrivalDateTime)) # <class 'str'>
+#print(len(varArrivalDateTime))  # il y a 15 cracteres
+#print(varArrivalDateTime.keys())
+
+arrival_time = []
+for loop_arrival_time in journeys: #(list) il y a un seule dans ce trajet
+    #print(type(loop_arrival_time)) #<class 'dict'>
+    #print(loop_arrival_time.keys())#dict_keys(['status', 'distances', 'links', 'tags', 'nb_transfers', 'durations', 'arrival_date_time', 'calendars', 'departure_date_time', 'requested_date_time', 'fare', 'co2_emission', 'type', 'duration', 'sections'])
+    #print(loop_arrival_time["arrival_date_time"]) #date_time du trajet
+    
+    #print(type(loop_arrival_time['sections'])) # <class 'list'>
+    #print(len(loop_arrival_time['sections'])) # il y a 3 sections
+    if type(loop_arrival_time['sections']) == list:
+        for loop_section in loop_arrival_time['sections']: #date_time de chaque section
+            #print("section ==> ",loop_section["arrival_date_time"])            
+            arrival_time.append(loop_section["arrival_date_time"])
+
+print("date_timme de chaque section ",arrival_time)
