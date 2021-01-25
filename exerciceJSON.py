@@ -9,6 +9,8 @@ Repondez aux questions suivantes dans un script python que vous mettrez sur gith
 import pprint
 import json
 import requests
+import datetime
+from dateutil import parser
 
 #----lisez le fichier json joint a ce brief (stop_areas.json), pour l'adresse du fichier je puet mettre avec ./ ou sans ça
 #le fichier stop_areas est bien un json
@@ -176,7 +178,8 @@ fichierCSV.close() #je ferme le fichier pour liberer les ressources """
 #TODO : faire le CSV pour les url(links)
 
 '''---- Récupérer les informations sur un trajet entre Paris Gare de Lyon et Lyon Perrache '''
-
+#Paris - Gare de Lyon (code de la gare : stop_area:OCE:SA:87686006) 
+#Lyon - Gare Lyon Perrache (code de la gare : stop_area:OCE:SA:87722025) 
 url = "https://api.sncf.com/v1/coverage/sncf/journeys?from=stop_area:OCE:SA:87686006&to=stop_area:OCE:SA:87722025"
 headers = {"Authorization": "e3f2b3a6-caa9-47d7-98ee-1f67379e654b"}
 responseTrajetParisLyon = requests.get(url, headers=headers)
@@ -186,6 +189,11 @@ dataParisLyon = json.loads(responseTrajetParisLyon.text)
 #print(dataParisLyon.keys()) #dict_keys(['tickets', 'links', 'journeys', 'disruptions', 'notes', 'feed_publishers', 'context', 'exceptions'])
 #print(type(dataParisLyon['journeys'])) #<class 'list'>
 
+#Informations sur le trajet : les vides sont notes, tickets, disruptions, exceptions et feed_publishers
+#print(dataParisLyon['context'])
+#print(dataParisLyon['context']['current_datetime']) #20210124T211113 date de la requete
+#print(dataParisLyon['context']['car_direct_path']) #emision carbone du trajet {'co2_emission': {'value': 97091.1386812212, 'unit': 'gEC'}}
+
 """ 
 for valor in dataParisLyon['journeys']:
     print(type(valor)) #<class 'dict'>
@@ -193,7 +201,19 @@ for valor in dataParisLyon['journeys']:
     print(valor.keys()) 
     #dict_keys(['status', 'distances', 'links', 'tags', 'nb_transfers', 'durations', 'arrival_date_time', 'calendars', 'departure_date_time', 'requested_date_time', 'fare', 'co2_emission', 'type', 'duration', 'sections'])
 """
-journeys = dataParisLyon['journeys']
+
+#code pour afficher tous les cles et types
+journeys = dataParisLyon['journeys'][0]
+"""for key in journeys :
+    print(type(journeys[key]), key) """
+
+#print(journeys.keys()) 
+#dict_keys(['status', 'distances', 'links', 'tags', 'nb_transfers', 'durations', 'arrival_date_time', 'calendars', 'departure_date_time', 'requested_date_time', 'fare', 'co2_emission', 'type', 'duration', 'sections'])
+
+#---- combien y a-t-il d’arrêts entre ces deux gares ? (utilisez la clé ‘journeys’)
+#print(' Dans ce trajet il y a ', journeys['nb_transfers'], ' arrets' )
+
+""" code que j'ai cree avant de savoir que nb_transfers represent les transfert, VOIR la DOC sncf, mais je laisse le code pour l utiliser apres
 #print(type(journeys)) #<class 'list'>
 #print(journeys)
 
@@ -203,7 +223,9 @@ journeys = dataParisLyon['journeys']
 #print(len(varArrivalDateTime))  # il y a 15 cracteres
 #print(varArrivalDateTime.keys())
 
-arrival_time = []
+nro_arret=0
+time_sections=[] # pour calculer le temps d'arret de chaqu'une
+#arrival_time = []
 for loop_arrival_time in journeys: #(list) il y a un seule dans ce trajet
     #print(type(loop_arrival_time)) #<class 'dict'>
     #print(loop_arrival_time.keys())#dict_keys(['status', 'distances', 'links', 'tags', 'nb_transfers', 'durations', 'arrival_date_time', 'calendars', 'departure_date_time', 'requested_date_time', 'fare', 'co2_emission', 'type', 'duration', 'sections'])
@@ -211,9 +233,102 @@ for loop_arrival_time in journeys: #(list) il y a un seule dans ce trajet
     
     #print(type(loop_arrival_time['sections'])) # <class 'list'>
     #print(len(loop_arrival_time['sections'])) # il y a 3 sections
-    if type(loop_arrival_time['sections']) == list:
-        for loop_section in loop_arrival_time['sections']: #date_time de chaque section
-            #print("section ==> ",loop_section["arrival_date_time"])            
-            arrival_time.append(loop_section["arrival_date_time"])
+    nro_arret = len(loop_arrival_time['sections'])
 
-print("date_timme de chaque section ",arrival_time)
+    if type(loop_arrival_time['sections']) == list:
+
+        for loop_section in loop_arrival_time['sections']: #date_time de chaque section
+            #print(type(loop_section)) # <class 'dict'>
+            #print(loop_section.keys()) # dict_keys(['from', 'links', 'arrival_date_time', 'co2_emission', 'to', 'departure_date_time', 'duration', 'type', 'id', 'mode'])
+            #print(type(loop_section["to"])) #<class 'dict'>
+            #print(loop_section["to"].keys()) # dict_keys(['embedded_type', 'stop_point', 'quality', 'name', 'id'])
+
+            #je sais pas si je comprends bien d'une section le time d arrivé c est le temps 
+            temps_arrive= loop_section["arrival_date_time"]
+            temps_depart = loop_section["departure_date_time"]
+
+            temps_conv_arrive = parser.parse(temps_arrive)
+            temps_conv_depart = parser.parse(temps_depart)
+            #print(type(temps_conv_depart)) #<class 'datetime.datetime'>
+
+            temps_conv_arrive2 = temps_conv_arrive.strftime("%b %d %Y %H:%M:%S") #'Jan 25 2021 05:52:00'
+            temps_conv_depart2 = temps_conv_depart.strftime("%b %d %Y %H:%M:%S")
+
+            #print(temps_conv_depart)
+
+            #deFrom = loop_section["from"]['name']
+            #aTo = loop_section["to"]['name']
+            #affichage_direction = loop_section["display_informations"]
+            dureSection = loop_section['duration']
+            idSection = loop_section['id']
+            #print("section ==> ",loop_section["arrival_date_time"])
+            time_sections.append([idSection,temps_conv_depart2, temps_conv_arrive2, dureSection])
+            #arrival_time.append(loop_section["arrival_date_time"])
+
+"""
+sections = journeys['sections'] #list
+#print(sections[1]) #celui-la à les arret dans stop_date_time
+
+sectionArrets = sections[1]
+#print(len(sectionArret['stop_date_times']))
+#print(type(sectionArrets)) # <class 'dict'>
+nb_arrets = len(sectionArrets['stop_date_times']) - 2 #parce qu il y a le depart et arrive inclue aussi
+list_arrets=[]
+temps_arrets=[]
+
+for cle, stop in enumerate(sectionArrets['stop_date_times']):#<class 'dict'>
+    #print(type(stop))#<class 'dict'>
+    #print(stop['stop_point'])#dict
+    #print(stop['stop_point']['name'])
+    #print(cle)
+    if cle != 0 and cle != (len(sectionArrets['stop_date_times']) -1):
+        list_arrets.append(stop['stop_point']['name'])
+        
+        #je sais pas si je comprends bien d'une section le time d arrivé c est le temps 
+        temps_arrive= stop["arrival_date_time"]
+        temps_depart = stop["departure_date_time"]
+
+        temps_conv_arrive = parser.parse(temps_arrive)
+        temps_conv_depart = parser.parse(temps_depart)
+        #print(type(temps_conv_depart)) #<class 'datetime.datetime'>
+
+        temps_conv_arrive2 = temps_conv_arrive.strftime("%b %d %Y %H:%M:%S") #'Jan 25 2021 05:52:00'
+        temps_conv_depart2 = temps_conv_depart.strftime("%b %d %Y %H:%M:%S")
+
+        #print(temps_conv_depart)
+        #temps_arrets.append([stop['arrival_date_time'],stop['departure_date_time']])
+        temps_arrets.append([temps_conv_arrive2,temps_conv_depart2 ])
+
+print('Dans ce trajet il y a ', nb_arrets, ' arrets : ',list_arrets)
+
+
+
+#---- combien de temps d’arrêt à chacune d’elles ?
+
+#print("Temps entre les arrets est ", journeys['durations']['total'])
+print("Temps entre les arrets est ", temps_arrets)
+
+#print('Le temps d’arrêt à chacune d’elles : ', time_sections)
+""" for section_affic in time_sections:
+    print("Section ", section_affic[0]," depart : ", section_affic[1] , " arrive : ", section_affic[2]) """
+
+
+#---- Vous êtes Gare de Lyon et il est 18h00. Combien de tgv partent entre 18h00 et 20h00 ?
+
+#https://api.navitia.io/v1/journeys?from={resource_id_1}&to={resource_id_2}&datetime={date_time_to_leave}
+""" date_time_to_leave = datetime.n
+url = "https://api.sncf.com/v1/coverage/sncf/journeys?from=stop_area:OCE:SA:87686006&to=stop_area:OCE:SA:87722025&datetime={date_time_to_leave}"
+headers = {"Authorization": "e3f2b3a6-caa9-47d7-98ee-1f67379e654b"}
+responseTrajetParisLyon = requests.get(url, headers=headers)
+dataParisLyon = json.loads(responseTrajetParisLyon.text) """
+
+#---- Lequel arrive le plus tôt à sa destination finale ?
+
+#---- Essayer de trouver toutes les correspondances possibles depuis un trajet entre Paris et Perpignan
+
+#---- Transformer une ou plusierus des donneess renvoyes par lapi en une ou plusieurs tables CSV
+
+#---- Bonus: Représenter toutes les gares atteignables avec un graphique type scatter.
+#---- Distinguer les gares atteintes en un seul trajet et celles atteintes avec une correspondance.
+
+#print("date_timme de chaque section ",arrival_time)
